@@ -41,11 +41,19 @@ class RedisClient(object):
         :return:
         """
         self.name = ""
-        kwargs.pop("username")
-        self.__conn = Redis(connection_pool=BlockingConnectionPool(decode_responses=True,
-                                                                   timeout=5,
-                                                                   socket_timeout=5,
-                                                                   **kwargs))
+        # 移除空密码和用户名
+        if "password" in kwargs and not kwargs["password"]:
+            kwargs.pop("password")
+        if "username" in kwargs:
+            kwargs.pop("username")
+
+        # 创建连接池时不包含认证信息
+        self.__conn = Redis(connection_pool=BlockingConnectionPool(
+            decode_responses=True,
+            timeout=5,
+            socket_timeout=5,
+            **kwargs
+        ))
 
     def get(self, https):
         """
@@ -151,5 +159,6 @@ class RedisClient(object):
         except ResponseError as e:
             log.error('redis connection error: %s' % str(e), exc_info=True)
             return e
+
 
 
